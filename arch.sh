@@ -38,11 +38,6 @@ chroot() {
 	arch-chroot /mnt
 }
 
-xorg_as_root() {
-	mkdir -p /etc/X11
-	echo 'needs_root_rights = yes' > /etc/X11/Xwrapper.config
-}
-
 limit_gpu_power() {
 	echo '[Unit]
 Description=Limit GPU Power
