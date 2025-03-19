@@ -65,35 +65,52 @@ change_root() {
 	arch-chroot /mnt
 }
 
-limit_gpu_power() {
-	echo '[Unit]' > /etc/systemd/system/gpu-power-limit.service
-	echo 'Description=Limit GPU Power' >> /etc/systemd/system/gpu-power-limit.service
-	echo '' >> /etc/systemd/system/gpu-power-limit.service
-	echo '[Service]' >> /etc/systemd/system/gpu-power-limit.service
-	echo 'ExecStart=/bin/nvidia-smi -pl 80' >> /etc/systemd/system/gpu-power-limit.service
-	echo '' >> /etc/systemd/system/gpu-power-limit.service
-	echo '[Install]' >> /etc/systemd/system/gpu-power-limit.service
-	echo 'WantedBy=graphical.target' >> /etc/systemd/system/gpu-power-limit.service
-	systemctl enable gpu-power-limit.service
+superuser() {
+	mkdir -p /etc/sudoers.d
+	echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/01_ag
+	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-smi' >> /etc/sudoers.d/01_ag 
+	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-settings' >> /etc/sudoers.d/01_ag 
 }
 
-enable_nvidia_sleep() {
-	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume nvidia-suspend-then-hibernate nvidia-hibernate
+nvidia_sleep() {
+	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume 
 }
 
-enable_tcp_fastopen() {
+nvidia_oc() {
+	sudo nvidia-xconfig --cool-bits=28
+}
+
+xorg_as_root() {
+	mkdir -p /etc/X11
+	echo 'needs_root_rights = yes' > /etc/X11/Xwrapper.config
+}
+
+tcp_fastopen() {
+	mkdir -p /etc/sysctl.d
 	echo 'net.ipv4.tcp_fastopen = 3' > /etc/sysctl.d/10-network.conf
 }
 
 disable_coredump() {
+	mkdir -p /etc/sysctl.d
 	echo 'kernel.core_pattern=|/bin/false' > /etc/sysctl.d/50-coredump.conf
 }
 
-set_swappiness() {
-	echo 'vm.swappiness = 35' > /etc/sysctl.d/99-swappiness.conf
+fstrim() {
+	systemctl enable fstrim.timer
 }
 
-configure_locales() {
+zram() {
+	mkdir -p /etc/udev/rules.d
+	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="zstd", ATTR{disksize}="16G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
+	mkdir -p /etc/sysctl.d
+	echo 'vm.swappiness = 180' > /etc/sysctl.d/99-vm-zram-parameters.conf
+	echo 'vm.watermark_boost_factor = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
+	echo 'vm.watermark_scale_factor = 125' >> /etc/sysctl.d/99-vm-zram-parameters.conf
+	echo 'vm.page-cluster = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
+	echo '/dev/zram0 none swap defaults,discard,pri=100 0 0' >> /etc/fstab
+}
+
+locales() {
 	ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
 	echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
 	locale-gen
@@ -101,36 +118,43 @@ configure_locales() {
 	systemctl enable systemd-timesyncd
 }
 
-configure_network() {
+network() {
 	mkdir -p /etc/systemd/network
 	echo '[Match]' > /etc/systemd/network/20-wired.network
 	echo 'Name=e*' >> /etc/systemd/network/20-wired.network
 	echo '' >> /etc/systemd/network/20-wired.network
 	echo '[Network]' >> /etc/systemd/network/20-wired.network
 	echo 'DHCP=yes' >> /etc/systemd/network/20-wired.network
-	systemctl enable systemd-networkd
+	systemctl enable systemd-networkd systemd-resolved
 }
 
-generate_image() {
+firewall() {
+	pacman -Sy --needed --noconfirm ufw
+	ufw enable
+}
+
+generate_images() {
 	pacman -Sy --needed --noconfirm linux $ucode booster
 	/usr/lib/booster/regenerate_images
 }
 
-install_bootloader() {
+bootloader() {
 	bootctl install
+	mkdir -p /boot/loader/entries
 	echo 'default @saved' > /boot/loader/loader.conf
 	echo 'timeout menu-force' >> /boot/loader/loader.conf
 	echo 'console-mode max' >> /boot/loader/loader.conf
-	
+
 	echo 'title   Arch Linux' > /boot/loader/entries/arch.conf
 	echo 'linux   /vmlinuz-linux' >> /boot/loader/entries/arch.conf
 	echo "initrd  /$ucode.img" >> /boot/loader/entries/arch.conf
 	echo 'initrd  /booster-linux.img' >> /boot/loader/entries/arch.conf
-	echo "options root=UUID=$(findmnt / -o UUID -n) rw quiet zswap.enabled=1" >> /boot/loader/entries/arch.conf
+	echo "options root=UUID=$(findmnt / -o UUID -n) rw quiet zswap.enabled=0" >> /boot/loader/entries/arch.conf
 }
 
-configure_windows_dualboot() {
+windows_dualboot() {
 	pacman -Sy --needed --noconfirm edk2-shell
+	mkdir -p /boot/loader/entries
 	cp /usr/share/edk2-shell/x64/Shell.efi /boot/shellx64.efi
 	echo 'title   Windows' > /boot/loader/entries/windows.conf
 	echo 'efi     /shellx64.efi' >> /boot/loader/entries/windows.conf
@@ -139,17 +163,20 @@ configure_windows_dualboot() {
 }
 
 configure() {
-	limit_gpu_power
-	enable_nvidia_sleep
-	enable_tcp_fastopen
+	superuser
+	nvidia_sleep
+	nvidia_oc
+	xorg_as_root
+	tcp_fastopen
 	disable_coredump
-	set_swappiness
+	fstrim
+	zram
 	configure_pacman
-	configure_locales
-	configure_network
-	generate_image
-	install_bootloader
-	configure_windows_dualboot
+	locales
+	network
+	generate_images
+	bootloader
+	windows_dualboot
 }
 
 while true; do
