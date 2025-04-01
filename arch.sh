@@ -101,12 +101,13 @@ fstrim() {
 
 zram() {
 	mkdir -p /etc/udev/rules.d
-	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="zstd", ATTR{disksize}="16G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
+	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="zstd", ATTR{disksize}="8G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
 	mkdir -p /etc/sysctl.d
 	echo 'vm.swappiness = 180' > /etc/sysctl.d/99-vm-zram-parameters.conf
 	echo 'vm.watermark_boost_factor = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
 	echo 'vm.watermark_scale_factor = 125' >> /etc/sysctl.d/99-vm-zram-parameters.conf
 	echo 'vm.page-cluster = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
+	
 	echo '/dev/zram0 none swap defaults,discard,pri=100 0 0' >> /etc/fstab
 }
 
