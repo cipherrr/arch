@@ -149,8 +149,8 @@ bootloader() {
 
 windows_dualboot() {
 	pacman -Sy --needed --noconfirm edk2-shell
-	mkdir -p /boot/loader/entries
 	cp /usr/share/edk2-shell/x64/Shell.efi /boot/shellx64.efi
+	mkdir -p /boot/loader/entries
 	echo 'title   Windows' > /boot/loader/entries/windows.conf
 	echo 'efi     /shellx64.efi' >> /boot/loader/entries/windows.conf
 	echo 'options -nointerrupt -nomap -noversion -exit -noconsoleout' >> /boot/loader/entries/windows.conf
