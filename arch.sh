@@ -5,18 +5,18 @@ lscpu | grep -q GenuineIntel && ucode=intel-ucode
 
 select_drive() {
 	lsblk -f
-	
+
 	while true; do
 		echo
 		read -p 'Select Drive (or type "q" to cancel): ' drive
 		echo
-		
+
 		if [ "$drive" = "q" ]; then
 			echo 'Canceled drive selection.'
 			echo
 			return 1
 		fi
-		
+
 		if ! lsblk /dev/$drive &> /dev/null; then
 			echo "Error: '$drive' is not a disk."
 			continue
@@ -26,10 +26,10 @@ select_drive() {
 			echo "Error: '$drive' is not a disk."
 			continue
 		fi
-		
+
 		umount -q /dev/$drive*
 		echo "Selected drive: $drive"
-    	return 0
+		return 0
 	done
 }
 
@@ -37,8 +37,8 @@ format_drive() {
 	select_drive
 	[ $? -eq 1 ] && return 1
 	parted -s /dev/$drive mklabel gpt
-	parted -s mkpart "EFI system partition" fat32 1MiB 1GiB set 1 esp on
-	parted -s mkpart "root partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
+	parted -s mkpart "EFI System Partition" fat32 1MiB 1GiB set 1 esp on
+	parted -s mkpart "Root Partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
 	mkfs.fat -F 32 /dev/$drive'p1'
 	mkfs.ext4 /dev/$drive'p2'
 }
@@ -68,12 +68,12 @@ change_root() {
 superuser() {
 	mkdir -p /etc/sudoers.d
 	echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/01_ag
-	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-smi' >> /etc/sudoers.d/01_ag 
-	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-settings' >> /etc/sudoers.d/01_ag 
+	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-smi' >> /etc/sudoers.d/01_ag
+	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-settings' >> /etc/sudoers.d/01_ag
 }
 
 nvidia_sleep() {
-	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume 
+	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume
 }
 
 nvidia_oc() {
@@ -101,13 +101,7 @@ fstrim() {
 
 zram() {
 	mkdir -p /etc/udev/rules.d
-	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="zstd", ATTR{disksize}="8G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
-	mkdir -p /etc/sysctl.d
-	echo 'vm.swappiness = 180' > /etc/sysctl.d/99-vm-zram-parameters.conf
-	echo 'vm.watermark_boost_factor = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
-	echo 'vm.watermark_scale_factor = 125' >> /etc/sysctl.d/99-vm-zram-parameters.conf
-	echo 'vm.page-cluster = 0' >> /etc/sysctl.d/99-vm-zram-parameters.conf
-	
+	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="lz4", ATTR{disksize}="16G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
 	echo '/dev/zram0 none swap defaults,discard,pri=100 0 0' >> /etc/fstab
 }
 
@@ -190,15 +184,15 @@ while true; do
 	echo '4. Change Root'
 	echo '5. Configure'
 	echo '6. Exit'
-	
+
 	while true; do
-		echo
-    	read -p 'Select an option: ' option
-    	echo
-    	[[ $option =~ ^[1-6]$ ]] && break
-    	echo 'Error: Invalid option.'
-  	done
-    
+	echo
+	read -p 'Select an option: ' option
+	echo
+	[[ $option =~ ^[1-6]$ ]] && break
+	echo 'Error: Invalid option.'
+	done
+
 	case $option in
 		1) format_drive;;
 		2) mount_drive;;
