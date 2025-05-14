@@ -201,11 +201,11 @@ while true; do
 	echo '6. Exit'
 
 	while true; do
-	echo
-	read -p 'Select an option: ' option
-	echo
-	[[ $option =~ ^[1-6]$ ]] && break
-	echo 'Error: Invalid option.'
+		echo
+		read -p 'Select an option: ' option
+		echo
+		[[ $option =~ ^[1-6]$ ]] && break
+		echo 'Error: Invalid option.'
 	done
 
 	case $option in
