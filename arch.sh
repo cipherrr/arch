@@ -14,7 +14,7 @@ select_drive() {
 		if [ "$drive" = "q" ]; then
 			echo 'Canceled drive selection.'
 			echo
-			return
+			return 1
 		fi
 
 		if ! lsblk /dev/$drive &> /dev/null; then
@@ -29,7 +29,7 @@ select_drive() {
 
 		umount -q /dev/$drive*
 		echo "Selected drive: $drive"
-		return
+		return 0
 	done
 }
 
