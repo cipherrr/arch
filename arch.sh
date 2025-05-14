@@ -72,6 +72,15 @@ superuser() {
 	echo 'ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-settings' >> /etc/sudoers.d/01_ag
 }
 
+autologin() {
+	mkdir -p /etc/systemd/system/getty@tty1.service.d
+	echo '[Service]' > /etc/systemd/system/getty@tty1.service.d/autologin.conf
+	echo 'Type=simple' >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
+	echo 'ExecStart=' >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
+	echo 'ExecStart=/bin/agetty --autologin ag %I $TERM' >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
+ 	systemctl enable getty@tty1.service
+}
+
 nvidia_sleep() {
 	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume
 }
@@ -159,6 +168,7 @@ windows_dualboot() {
 
 configure() {
 	superuser
+	autologin
 	nvidia_sleep
 	nvidia_oc
 	xorg_as_root
