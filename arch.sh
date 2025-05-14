@@ -14,7 +14,7 @@ select_drive() {
 		if [ "$drive" = "q" ]; then
 			echo 'Canceled drive selection.'
 			echo
-			return 1
+			return
 		fi
 
 		if ! lsblk /dev/$drive &> /dev/null; then
@@ -29,13 +29,13 @@ select_drive() {
 
 		umount -q /dev/$drive*
 		echo "Selected drive: $drive"
-		return 0
+		return
 	done
 }
 
 format_drive() {
 	select_drive
-	[ $? -eq 1 ] && return 1
+	[ $? -eq 1 ] && return
 	parted -s /dev/$drive mklabel gpt
 	parted -s mkpart "EFI System Partition" fat32 1MiB 1GiB set 1 esp on
 	parted -s mkpart "Root Partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
@@ -45,7 +45,7 @@ format_drive() {
 
 mount_drive() {
 	select_drive
-	[ $? -eq 1 ] && return 1
+	[ $? -eq 1 ] && return
 	mount --mkdir /dev/$drive'p2' /mnt
 	mount --mkdir /dev/$drive'p1' /mnt/boot
 }
@@ -111,6 +111,11 @@ fstrim() {
 zram() {
 	mkdir -p /etc/udev/rules.d
 	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="lz4", ATTR{disksize}="16G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
+
+  	if grep -q '/dev/zram0' /etc/fstab; then
+   		echo '#/dev/zram0 none swap defaults,discard,pri=100 0 0' >> /etc/fstab
+     		return
+	fi
 	echo '/dev/zram0 none swap defaults,discard,pri=100 0 0' >> /etc/fstab
 }
 
