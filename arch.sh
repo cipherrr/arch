@@ -68,8 +68,7 @@ change_root() {
 superuser() {
 	mkdir -p /etc/sudoers.d
 	echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/01_ag
-	echo "ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-smi" >> /etc/sudoers.d/01_ag
-	echo "ag ALL=(ALL:ALL) NOPASSWD: /usr/bin/nvidia-settings" >> /etc/sudoers.d/01_ag
+	echo "ag ALL=(ALL:ALL) NOPASSWD: /bin/sh" >> /etc/sudoers.d/01_ag
 }
 
 autologin() {
