@@ -84,15 +84,6 @@ nvidia_sleep() {
 	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume
 }
 
-nvidia_oc() {
-	sudo nvidia-xconfig --cool-bits=28
-}
-
-xorg_as_root() {
-	mkdir -p /etc/X11
-	echo "needs_root_rights = yes" > /etc/X11/Xwrapper.config
-}
-
 tcp_fastopen() {
 	mkdir -p /etc/sysctl.d
 	echo "net.ipv4.tcp_fastopen = 3" > /etc/sysctl.d/10-network.conf
@@ -175,8 +166,6 @@ configure() {
 	superuser
 	autologin
 	nvidia_sleep
-	nvidia_oc
-	xorg_as_root
 	tcp_fastopen
 	disable_coredump
 	fstrim
