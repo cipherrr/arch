@@ -34,36 +34,8 @@ select_drive() {
 	done
 }
 
-format_drive() {
-	select_drive
-	[ $? -eq 1 ] && return
-	parted -s /dev/$drive mklabel gpt
-	parted -s mkpart "EFI System Partition" fat32 1MiB 1GiB set 1 esp on
-	parted -s mkpart "Root Partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
-	mkfs.fat -F 32 /dev/$drive"p1"
-	mkfs.ext4 /dev/$drive"p2"
-}
-
-mount_drive() {
-	select_drive
-	[ $? -eq 1 ] && return
-	mount --mkdir /dev/$drive"p2" /mnt
-	mount --mkdir /dev/$drive"p1" /mnt/boot
-}
-
 configure_pacman() {
 	sed -i 's/#Color/Color/' /etc/pacman.conf
-}
-
-install_archlinux() {
-	configure_pacman
-	pacstrap -K /mnt base linux linux-firmware booster $ucode
-	genfstab -U /mnt > /mnt/etc/fstab
-}
-
-change_root() {
-	cp arch.sh /mnt
-	arch-chroot /mnt
 }
 
 superuser() {
@@ -163,22 +135,6 @@ windows_dualboot() {
 	echo "HD0b:EFI\Microsoft\Boot\Bootmgfw.efi" >> /boot/loader/entries/windows.conf
 }
 
-configure() {
-	superuser
-	autologin
-	nvidia_sleep
-	tcp_fastopen
-	disable_coredump
-	fstrim
-	zram
-	configure_pacman
-	locales
-	network
-	generate_images
-	bootloader
-	windows_dualboot
-}
-
 while true; do
 	echo "+-------------------+"
 	echo "| ARCH LINUX HELPER |"
@@ -199,11 +155,45 @@ while true; do
 	done
 
 	case $option in
-		1) format_drive;;
-		2) mount_drive;;
-		3) install_archlinux;;
-		4) change_root;;
-		5) configure;;
+		1)
+	  		select_drive
+			[ $? -eq 1 ] && return
+			parted -s /dev/$drive mklabel gpt
+			parted -s mkpart "EFI System Partition" fat32 1MiB 1GiB set 1 esp on
+			parted -s mkpart "Root Partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
+			mkfs.fat -F 32 /dev/$drive"p1"
+			mkfs.ext4 /dev/$drive"p2"
+	    		;;
+		2)
+		  	select_drive
+			[ $? -eq 1 ] && return
+			mount --mkdir /dev/$drive"p2" /mnt
+			mount --mkdir /dev/$drive"p1" /mnt/boot
+		 	;;
+		3)
+		  	configure_pacman
+			pacstrap -K /mnt base linux linux-firmware booster $ucode
+			genfstab -U /mnt > /mnt/etc/fstab
+		  	;;
+		4)
+			cp arch.sh /mnt
+			arch-chroot /mnt
+		 	;;
+		5)
+  			superuser
+			autologin
+			nvidia_sleep
+			tcp_fastopen
+			disable_coredump
+			fstrim
+			zram
+			configure_pacman
+			locales
+			network
+			generate_images
+			bootloader
+			windows_dualboot
+		 	;;
 		6) exit;;
 	esac
 done
