@@ -139,16 +139,16 @@ while true; do
 	echo "+-------------------+"
 	echo "| ARCH LINUX HELPER |"
 	echo "+-------------------+"
-	echo "1. Format Drive"
-	echo "2. Mount Drive"
-	echo "3. Install ArchLinux"
-	echo "4. Change Root"
-	echo "5. Configure"
-	echo "6. Exit"
+	echo "| 1 | Format Drive"
+	echo "| 2 | Mount Drive"
+	echo "| 3 | Install ArchLinux"
+	echo "| 4 | Change Root"
+	echo "| 5 | Configure"
+	echo "| 6 | Exit"
 
 	while true; do
 		echo
-		read -p "Select an option: " option
+		read -p "> " option
 		echo
 		[[ $option =~ ^[1-6]$ ]] && break
 		echo "Error: Invalid option."
