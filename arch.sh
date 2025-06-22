@@ -54,7 +54,7 @@ autologin() {
 }
 
 nvidia_sleep() {
-	systemctl enable nvidia-powerd nvidia-persistenced nvidia-suspend nvidia-resume
+	systemctl enable nvidia-suspend nvidia-resume
 }
 
 tcp_fastopen() {
@@ -73,7 +73,7 @@ fstrim() {
 
 zram() {
 	mkdir -p /etc/udev/rules.d
-	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="lz4", ATTR{disksize}="16G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
+	echo 'ACTION=="add", KERNEL=="zram0", ATTR{initstate}=="0", ATTR{comp_algorithm}="lz4", ATTR{disksize}="8G", RUN="/usr/bin/mkswap -U clear %N", TAG+="systemd"' > /etc/udev/rules.d/99-zram.rules
 
   	if grep -q "/dev/zram0" /etc/fstab; then
    		echo "#/dev/zram0 none swap defaults,discard,pri=100 0 0" >> /etc/fstab
@@ -97,7 +97,6 @@ network() {
 	echo >> /etc/systemd/network/20-wired.network
 	echo "[Network]" >> /etc/systemd/network/20-wired.network
 	echo "DHCP=yes" >> /etc/systemd/network/20-wired.network
- 	echo "DNS=1.1.1.1" >> /etc/systemd/network/20-wired.network
 	systemctl enable systemd-networkd systemd-resolved
 }
 
