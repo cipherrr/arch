@@ -54,7 +54,7 @@ autologin() {
 }
 
 nvidia_sleep() {
-	systemctl enable nvidia-suspend nvidia-resume nvidia-powerd
+	systemctl enable nvidia-suspend nvidia-resume nvidia-powerd nvidia-persistenced
 }
 
 tcp_fastopen() {
