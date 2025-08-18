@@ -62,6 +62,10 @@ tcp_fastopen() {
 	echo "net.ipv4.tcp_fastopen = 3" > /etc/sysctl.d/10-network.conf
 }
 
+disable_audio_powersave() {
+	echo "options snd_hda_intel power_save=0" > /etc/modprobe.d/disable_audio_powersave.conf
+}
+
 disable_coredump() {
 	mkdir -p /etc/sysctl.d
 	echo "kernel.core_pattern=|/bin/false" > /etc/sysctl.d/50-coredump.conf
@@ -183,6 +187,7 @@ while true; do
 			autologin
 			nvidia_sleep
 			tcp_fastopen
+   			disable_audio_powersave
 			disable_coredump
 			fstrim
 			zram
