@@ -57,6 +57,10 @@ nvidia_sleep() {
 	systemctl enable nvidia-suspend nvidia-resume nvidia-powerd nvidia-persistenced
 }
 
+optimize_nvidia() {
+	echo "options nvidia NVreg_UsePageAttributeTable=1" > /etc/modprobe.d/nvidia.conf
+}
+
 tcp_fastopen() {
 	mkdir -p /etc/sysctl.d
 	echo "net.ipv4.tcp_fastopen = 3" > /etc/sysctl.d/10-network.conf
@@ -186,6 +190,7 @@ while true; do
   			superuser
 			autologin
 			nvidia_sleep
+   			optimize_nvidia
 			tcp_fastopen
    			disable_audio_powersave
 			disable_coredump
