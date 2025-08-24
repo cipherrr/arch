@@ -34,7 +34,7 @@ select_drive() {
 	done
 }
 
-configure_pacman() {
+pacman() {
 	sed -i 's/#Color/Color/' /etc/pacman.conf
 }
 
@@ -53,30 +53,23 @@ autologin() {
  	systemctl enable getty@tty1.service
 }
 
-nvidia_sleep() {
+nvidia() {
 	systemctl enable nvidia-suspend nvidia-resume nvidia-powerd nvidia-persistenced
+
+  	echo "options nvidia NVreg_UsePageAttributeTable=1" > /etc/modprobe.d/nvidia.conf
 }
 
-optimize_nvidia() {
-	echo "options nvidia NVreg_UsePageAttributeTable=1" > /etc/modprobe.d/nvidia.conf
-}
-
-tcp_fastopen() {
-	mkdir -p /etc/sysctl.d
-	echo "net.ipv4.tcp_fastopen = 3" > /etc/sysctl.d/10-network.conf
-}
-
-disable_audio_powersave() {
+audio() {
 	echo "options snd_hda_intel power_save=0" > /etc/modprobe.d/disable_audio_powersave.conf
 }
 
-disable_coredump() {
+coredump() {
 	mkdir -p /etc/sysctl.d
 	echo "kernel.core_pattern=|/bin/false" > /etc/sysctl.d/50-coredump.conf
 }
 
 journald() {
-	mkdir /etc/systemd/journald.conf.d
+	mkdir -p /etc/systemd/journald.conf.d
 	echo "[Journal]" > /etc/systemd/journald.conf.d/00-journal-size.conf
 	echo "SystemMaxUse=50M" >> /etc/systemd/journald.conf.d/00-journal-size.conf
 }
@@ -105,6 +98,9 @@ locales() {
 }
 
 network() {
+	mkdir -p /etc/sysctl.d
+	echo "net.ipv4.tcp_fastopen = 3" > /etc/sysctl.d/10-network.conf
+ 
 	mkdir -p /etc/systemd/network
 	echo "[Match]" > /etc/systemd/network/20-wired.network
 	echo "Name=enp5s0" >> /etc/systemd/network/20-wired.network
@@ -194,15 +190,13 @@ while true; do
 		5)
   			superuser
 			autologin
-			nvidia_sleep
-   			optimize_nvidia
-			tcp_fastopen
-   			disable_audio_powersave
-			disable_coredump
+			nvidia
+   			audio
+			coredump
    			journald
 			fstrim
 			zram
-			configure_pacman
+			pacman
 			locales
 			network
 			generate_images
