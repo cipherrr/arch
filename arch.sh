@@ -75,6 +75,12 @@ disable_coredump() {
 	echo "kernel.core_pattern=|/bin/false" > /etc/sysctl.d/50-coredump.conf
 }
 
+limit_journal_size() {
+	mkdir /etc/systemd/journald.conf.d
+	echo "[Journal]" > /etc/systemd/journald.conf.d/00-journal-size.conf
+	echo "SystemMaxUse=50M" >> /etc/systemd/journald.conf.d/00-journal-size.conf
+}
+
 fstrim() {
 	systemctl enable fstrim.timer
 }
