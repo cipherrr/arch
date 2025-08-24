@@ -176,7 +176,7 @@ while true; do
 			parted -s mkpart "Root Partition" ext4 1GiB 100% type 2 4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709
 			mkfs.fat -F 32 /dev/$drive"p1"
 			mkfs.ext4 /dev/$drive"p2"
-	    		;;
+	    	;;
 		2)
 		  	select_drive
 			[ $? -eq 1 ] && return
@@ -184,7 +184,6 @@ while true; do
 			mount --mkdir /dev/$drive"p1" /mnt/boot
 		 	;;
 		3)
-		  	configure_pacman
 			pacstrap -K /mnt base linux linux-firmware booster $ucode
 			genfstab -U /mnt > /mnt/etc/fstab
 		  	;;
