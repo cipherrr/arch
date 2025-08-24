@@ -43,7 +43,7 @@ pacman() {
 superuser() {
 	mkdir -p /etc/sudoers.d
 	echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/01_$username
-	echo "$username ALL=(ALL:ALL) NOPASSWD: /bin/sh" >> /etc/sudoers.d/01_$username
+	echo "$username ALL=(ALL:ALL) NOPASSWD: /bin/nvidia-smi, /bin/pacman, /bin/sh">> /etc/sudoers.d/01_$username
 }
 
 autologin() {
@@ -51,7 +51,7 @@ autologin() {
 	echo "[Service]" > /etc/systemd/system/getty@tty1.service.d/autologin.conf
 	echo "Type=simple" >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
 	echo "ExecStart=" >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
-	echo "ExecStart=/bin/agetty --autologin $username %I $TERM" >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
+	echo 'ExecStart=/bin/agetty --autologin $username %I $TERM' >> /etc/systemd/system/getty@tty1.service.d/autologin.conf
  	systemctl enable getty@tty1.service
 }
 
