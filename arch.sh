@@ -75,7 +75,7 @@ disable_coredump() {
 	echo "kernel.core_pattern=|/bin/false" > /etc/sysctl.d/50-coredump.conf
 }
 
-limit_journal_size() {
+journald() {
 	mkdir /etc/systemd/journald.conf.d
 	echo "[Journal]" > /etc/systemd/journald.conf.d/00-journal-size.conf
 	echo "SystemMaxUse=50M" >> /etc/systemd/journald.conf.d/00-journal-size.conf
@@ -199,7 +199,7 @@ while true; do
 			tcp_fastopen
    			disable_audio_powersave
 			disable_coredump
-   			limit_journal_size
+   			journald
 			fstrim
 			zram
 			configure_pacman
