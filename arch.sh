@@ -200,6 +200,7 @@ while true; do
 			tcp_fastopen
    			disable_audio_powersave
 			disable_coredump
+   			limit_journal_size
 			fstrim
 			zram
 			configure_pacman
