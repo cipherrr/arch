@@ -36,6 +36,8 @@ select_drive() {
 
 pacman() {
 	sed -i 's/#Color/Color/' /etc/pacman.conf
+
+  	systemctl enable paccache.timer
 }
 
 superuser() {
